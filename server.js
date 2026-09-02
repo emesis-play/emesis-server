@@ -50,6 +50,11 @@ io.on("connection", (socket) => {
     socket.to(code).emit("enemyState", data);
   });
 
+  socket.on("grantToPlayer", (data) => {
+    if(!data || !data.targetId || !data.event) return;
+    io.to(data.targetId).emit(data.event, data.payload || {});
+  });
+  
   socket.on("posUpdate", (data) => {
     const code = socket.data.code;
     if(!code) return;
