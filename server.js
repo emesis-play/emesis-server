@@ -44,6 +44,12 @@ io.on("connection", (socket) => {
     io.to(code).emit("gameStarted");
   });
 
+  socket.on("enemyState", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("enemyState", data);
+  });
+
   socket.on("posUpdate", (data) => {
     const code = socket.data.code;
     if(!code) return;
