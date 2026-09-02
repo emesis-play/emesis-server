@@ -54,6 +54,12 @@ io.on("connection", (socket) => {
     if(!data || !data.targetId || !data.event) return;
     io.to(data.targetId).emit(data.event, data.payload || {});
   });
+
+  socket.on("killEnemy", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("killEnemy", data);
+  });
   
   socket.on("posUpdate", (data) => {
     const code = socket.data.code;
