@@ -60,6 +60,24 @@ io.on("connection", (socket) => {
     if(!code) return;
     socket.to(code).emit("killEnemy", data);
   });
+
+  socket.on("collectItem", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("collectItem", data);
+  });
+
+  socket.on("bulletFired", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("bulletFired", data);
+  });
+
+  socket.on("killEnemy", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("killEnemy", data);
+  });
   
   socket.on("posUpdate", (data) => {
     const code = socket.data.code;
