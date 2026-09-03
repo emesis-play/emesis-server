@@ -2,18 +2,14 @@ const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http, { cors: { origin: "*" } });
-
 const parties = {}; // code -> { hostId, players: { id: {username} } }
-
 function makeCode(){
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for(let i=0;i<4;i++) code += chars[Math.floor(Math.random()*chars.length)];
   return code;
 }
-
 io.on("connection", (socket) => {
-
   socket.on("createParty", (username) => {
     let code;
     do { code = makeCode(); } while(parties[code]);
@@ -25,7 +21,6 @@ io.on("connection", (socket) => {
     socket.emit("partyCreated", { code });
     io.to(code).emit("playerListUpdate", parties[code].players);
   });
-
   socket.on("joinParty", ({ code, username }) => {
     code = (code || "").toUpperCase();
     const party = parties[code];
@@ -37,55 +32,56 @@ io.on("connection", (socket) => {
     socket.emit("partyJoined", { code });
     io.to(code).emit("playerListUpdate", party.players);
   });
-
   socket.on("startGame", () => {
     const code = socket.data.code;
     if(!code || !parties[code] || parties[code].hostId !== socket.id) return;
     io.to(code).emit("gameStarted");
   });
-
   socket.on("enemyState", (data) => {
     const code = socket.data.code;
     if(!code) return;
     socket.to(code).emit("enemyState", data);
   });
-
   socket.on("grantToPlayer", (data) => {
     if(!data || !data.targetId || !data.event) return;
     io.to(data.targetId).emit(data.event, data.payload || {});
   });
-
   socket.on("killEnemy", (data) => {
     const code = socket.data.code;
     if(!code) return;
     socket.to(code).emit("killEnemy", data);
   });
-
   socket.on("collectItem", (data) => {
     const code = socket.data.code;
     if(!code) return;
     socket.to(code).emit("collectItem", data);
   });
-
   socket.on("bulletFired", (data) => {
     const code = socket.data.code;
     if(!code) return;
     socket.to(code).emit("bulletFired", data);
   });
-
-  socket.on("killEnemy", (data) => {
+  socket.on("wormHit", (data) => {
     const code = socket.data.code;
     if(!code) return;
-    socket.to(code).emit("killEnemy", data);
+    socket.to(code).emit("wormHit", data);
   });
-  
+  socket.on("playerDied", (data) => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("playerDied", { id: socket.id });
+  });
+  socket.on("allDead", () => {
+    const code = socket.data.code;
+    if(!code) return;
+    socket.to(code).emit("allDead");
+  });
   socket.on("posUpdate", (data) => {
     const code = socket.data.code;
     if(!code) return;
     data.id = socket.id;
     socket.to(code).emit("posUpdate", data);
   });
-
   socket.on("disconnect", () => {
     const code = socket.data.code;
     if(!code || !parties[code]) return;
@@ -99,6 +95,5 @@ io.on("connection", (socket) => {
     }
   });
 });
-
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log("listening on " + PORT));
