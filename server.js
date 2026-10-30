@@ -32,9 +32,30 @@ io.on("connection", (socket) => {
     socket.emit("partyJoined", { code });
     io.to(code).emit("playerListUpdate", party.players);
   });
+  socket.on("setPartyInfo", (info) => {
+    const code = socket.data.code;
+    const party = parties[code];
+    if(!party || party.hostId !== socket.id) return;   // only the host can change it
+    party.name = String((info && info.name) || "").slice(0, 24);
+    party.isPublic = !!(info && info.isPublic);
+  });
+
+  socket.on("getPublicParties", () => {
+    const list = Object.keys(parties)
+      .filter(c => parties[c].isPublic)
+      .slice(0, 12)
+      .map(c => ({
+        code: c,
+        name: parties[c].name || "Party",
+        players: Object.keys(parties[c].players).length
+      }));
+    socket.emit("publicParties", list);
+  });
+
   socket.on("startGame", () => {
     const code = socket.data.code;
     if(!code || !parties[code] || parties[code].hostId !== socket.id) return;
+    parties[code].isPublic = false;   // started games can't be joined from the public list
     io.to(code).emit("gameStarted");
   });
   socket.on("enemyState", (data) => {
