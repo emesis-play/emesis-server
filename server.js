@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
   socket.on("getPublicParties", () => {
     const list = Object.keys(parties)
       .filter(c => parties[c].isPublic)
-      .slice(0, 12)
+      .slice(0, 200)
       .map(c => ({
         code: c,
         name: parties[c].name || "Party",
