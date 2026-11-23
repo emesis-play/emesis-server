@@ -38,6 +38,7 @@ io.on("connection", (socket) => {
     if(!party || party.hostId !== socket.id) return;   // only the host can change it
     party.name = String((info && info.name) || "").slice(0, 24);
     party.isPublic = !!(info && info.isPublic);
+    party.gameMode = String((info && info.gameMode) || "Classic").slice(0, 20);
   });
 
   socket.on("getPublicParties", () => {
@@ -47,7 +48,8 @@ io.on("connection", (socket) => {
       .map(c => ({
         code: c,
         name: parties[c].name || "Party",
-        players: Object.keys(parties[c].players).length
+        players: Object.keys(parties[c].players).length,
+        gameMode: parties[c].gameMode || "Classic"
       }));
     socket.emit("publicParties", list);
   });
